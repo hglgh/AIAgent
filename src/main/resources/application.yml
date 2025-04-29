@@ -1,19 +1,23 @@
 spring:
   application:
     name: hgl-ai-agent
-  ai:
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        model: gemma3:1b
+#  ai:
+#    ollama:
+#      base-url: http://localhost:11434
+#      chat:
+#        model: gemma3:1b
 
   profiles:
     active: local
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1
 server:
   port: 8223
   servlet:
     context-path: /api
-
 
 
 # springdoc-openapi项目配置
@@ -33,3 +37,7 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+# 日志配置 可以自定义某些模块的日志级别(但是不够优雅，所以使用自定义Advisor来实现SimpleLoggerAdvisor的日志记录功能)
+#logging:
+#  level:
+#    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: DEBUG

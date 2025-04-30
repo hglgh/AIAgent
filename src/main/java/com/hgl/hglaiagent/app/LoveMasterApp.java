@@ -4,12 +4,18 @@ import com.hgl.hglaiagent.advisor.MyLoggerAdvisor;
 import com.hgl.hglaiagent.advisor.ProhibitedWordsAdvisor;
 import com.hgl.hglaiagent.chatmemory.FileBasedChatMemory;
 import com.hgl.hglaiagent.chatmemory.RedisBasedChatMemory;
+import com.hgl.hglaiagent.rag.LoveMasterAppVectorStoreConfig;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -86,13 +92,13 @@ public class LoveMasterApp {
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
                 .call().chatResponse();
         assert chatResponse != null;
-        String content = chatResponse.getResult().getOutput().getText();
-        log.info("AI: {}", content);
-        return content;
+        return chatResponse.getResult().getOutput().getText();
     }
 
+    // 定义LoveReport结构体
     record LoveReport(String title, List<String> suggestions) {
     }
+
     /**
      * AI 恋爱报告功能(实战结构化输出)
      *
@@ -100,9 +106,9 @@ public class LoveMasterApp {
      * @param chatId  会话ID
      * @return AI输出
      */
-    public LoveReport doChatWithReport(String message, String chatId){
+    public LoveReport doChatWithReport(String message, String chatId) {
         //初始化基于Redis持久化的对话记忆
-        LoveReport loveReport = chatClient.prompt()
+        return chatClient.prompt()
                 .system(SYSTEM_PROMPT + "每次对话后都要生成恋爱结果，标题为{用户名}的恋爱报告，内容为建议列表")
                 .user(message)
                 .advisors(advisorSpec -> advisorSpec
@@ -110,6 +116,31 @@ public class LoveMasterApp {
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
                 .call()
                 .entity(LoveReport.class);
-        return loveReport;
+    }
+
+    //--------------------------------使用rag检索增强生成-------------------------------------------
+    @Resource
+    private VectorStore loveMasterAppVectorStore;
+
+    @Resource
+    private Advisor loveMasterAppRagCloudAdvisor;
+
+    public String doChatWithRag(String message, String chatId) {
+        ChatResponse chatResponse = chatClient.prompt()
+                .user(message)
+                .advisors(advisorSpec -> advisorSpec
+                        .param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)
+                ).advisors(
+                        // 开启日志，便于观察效果
+                        new MyLoggerAdvisor()
+                        // 应用知识库问答
+//                        ,new QuestionAnswerAdvisor(loveMasterAppVectorStore)
+                )
+                // 应用增强检索服务（云知识库服务）
+                .advisors(loveMasterAppRagCloudAdvisor)
+                .call().chatResponse();
+        assert chatResponse != null;
+        return chatResponse.getResult().getOutput().getText();
     }
 }

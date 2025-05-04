@@ -2,9 +2,11 @@ package com.hgl.hglaiagent.app;
 
 import com.hgl.hglaiagent.advisor.MyLoggerAdvisor;
 import com.hgl.hglaiagent.advisor.ProhibitedWordsAdvisor;
+import com.hgl.hglaiagent.chatmemory.DatabaseChatMemory;
 import com.hgl.hglaiagent.chatmemory.FileBasedChatMemory;
 import com.hgl.hglaiagent.chatmemory.RedisBasedChatMemory;
 import com.hgl.hglaiagent.rag.LoveMasterAppVectorStoreConfig;
+import com.hgl.hglaiagent.service.ChatMessageService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -48,7 +50,7 @@ public class LoveMasterApp {
      *
      * @param dashscopeChatModel 模型
      */
-    public LoveMasterApp(ChatModel dashscopeChatModel, RedisTemplate<String, String> redisTemplate) {
+    public LoveMasterApp(ChatModel dashscopeChatModel, RedisTemplate<String, String> redisTemplate, ChatMessageService chatMessageService) {
         //初始化基于内存的对话记忆
         InMemoryChatMemory chatMemory = new InMemoryChatMemory();
         //初始化基于文件持久化的对话记忆
@@ -56,6 +58,8 @@ public class LoveMasterApp {
 //        FileBasedChatMemory fileBasedChatMemory = new FileBasedChatMemory(dir);
         //初始化基于Redis的持久化对话记忆
 //        RedisBasedChatMemory redisBasedChatMemory = new RedisBasedChatMemory(redisTemplate);
+        //初始化基于数据库的持久化对话记忆
+//        DatabaseChatMemory databaseChatMemory = new DatabaseChatMemory(chatMessageService);
         this.chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(

@@ -2,6 +2,8 @@ package com.hgl.hglaiagent.chatmemory;
 
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSON;
+import com.hgl.hglaiagent.converter.MessageConverter;
+import com.hgl.hglaiagent.model.entity.ChatMessage;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
@@ -33,10 +35,12 @@ public class RedisBasedChatMemory implements ChatMemory {
     @Override
     public void add(String conversationId, List<Message> messages) {
         HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
-        messages.stream().map(JSON::toJSONString)
-                .forEach(messageStr -> {
-                    String uuid = UUID.randomUUID().toString();
-                    hashOperations.put(conversationId, uuid, messageStr);
+        final int[] count = {0};
+        messages.stream().map(message -> MessageConverter.toChatMessage(message, conversationId))
+                .forEach(chatMessage -> {
+                    count[0]++;
+                    String jsonStr = JSONUtil.toJsonStr(chatMessage);
+                    hashOperations.put(conversationId,String.valueOf(count[0]), jsonStr);
                 });
         redisTemplate.expire(conversationId, 5, TimeUnit.MINUTES);
     }
@@ -48,7 +52,7 @@ public class RedisBasedChatMemory implements ChatMemory {
         if (!values.isEmpty()) {
             return values
                     .stream()
-                    .map(str -> JSON.parseObject(str, Message.class))
+                    .map(str ->JSONUtil.toBean(str, ChatMessage.class)).map(MessageConverter::toMessage)
                     .skip(Math.max(0, values.size() - lastN))
                     .toList();
         }

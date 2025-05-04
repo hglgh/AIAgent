@@ -38,7 +38,7 @@ class LoveMasterAppTest {
         answer = loveMasterApp.doChat(message, chatId);
         Assertions.assertNotNull(answer);
         // 第三轮
-        message = "我是谁?";
+        message = "我忘记了我是谁，你能提醒一下我吗？";
         answer = loveMasterApp.doChat(message, chatId);
         Assertions.assertNotNull(answer);
     }

@@ -13,17 +13,27 @@ import com.alibaba.dashscope.exception.UploadFileException;
 import com.alibaba.dashscope.utils.JsonUtils;
 /**
  * @author 请别把我整破防
+ * @Desription: 多模态对话示例
  */
 public class MultimodalInvoke {
-    public static void simpleMultiModalConversationCall()
-            throws ApiException, NoApiKeyException, UploadFileException {
+    public static void simpleMultiModalConversationCall() throws ApiException, NoApiKeyException, UploadFileException {
         MultiModalConversation conv = new MultiModalConversation();
-        MultiModalMessage userMessage = MultiModalMessage.builder().role(Role.USER.getValue())
-                .content(Arrays.asList(
-                        Collections.singletonMap("image", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"),
-                        Collections.singletonMap("image", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/tiger.png"),
-                        Collections.singletonMap("image", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/rabbit.png"),
-                        Collections.singletonMap("text", "这些是什么?"))).build();
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(
+                        Arrays.asList(
+                                Collections.singletonMap("image", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"),
+                                Collections.singletonMap("image", "F:\\图片\\其它\\狗头.jpg"),
+                                Collections.singletonMap("image", "F:\\图片\\其它\\猫头.jpg"),
+                                Collections.singletonMap("image", "F:\\图片\\Camera Roll\\照片.jpg"),
+                                Collections.singletonMap("image", "F:\\图片\\Camera Roll\\证件照.jpg"),
+                                Collections.singletonMap("image", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/tiger.png"),
+                                Collections.singletonMap("image", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/rabbit.png"),
+                                Collections.singletonMap("text", "这些是什么?"),
+                                Collections.singletonMap("text", "第四第五张是一个人吗?")
+                        )
+                )
+                .build();
         MultiModalConversationParam param = MultiModalConversationParam.builder()
                 // 若没有配置环境变量，请用百炼API Key将下行替换为：.apiKey("sk-xxx")
                 .apiKey(TestApiKey.API_KEY)

@@ -5,7 +5,9 @@ import com.hgl.hglaiagent.advisor.ProhibitedWordsAdvisor;
 import com.hgl.hglaiagent.chatmemory.DatabaseChatMemory;
 import com.hgl.hglaiagent.chatmemory.FileBasedChatMemory;
 import com.hgl.hglaiagent.chatmemory.RedisBasedChatMemory;
+import com.hgl.hglaiagent.rag.LoveMasterAppRagCustomAdvisorFactory;
 import com.hgl.hglaiagent.rag.LoveMasterAppVectorStoreConfig;
+import com.hgl.hglaiagent.rag.QueryRetriever;
 import com.hgl.hglaiagent.service.ChatMessageService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -126,23 +128,40 @@ public class LoveMasterApp {
     @Resource
     private VectorStore loveMasterAppVectorStore;
 
+/*    @Resource
+    private VectorStore pgVectorVectorStore;*/
+
+    @Resource
+    private QueryRetriever queryRetriever;
+
     @Resource
     private Advisor loveMasterAppRagCloudAdvisor;
 
     public String doChatWithRag(String message, String chatId) {
+        //查询重写后的问题
+        String rewrittenMessage = queryRetriever.doQueryRewrite(message);
         ChatResponse chatResponse = chatClient.prompt()
-                .user(message)
+                //使用重写后的问题
+                .user(rewrittenMessage)
                 .advisors(advisorSpec -> advisorSpec
                         .param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)
-                ).advisors(
-                        // 开启日志，便于观察效果
-                        new MyLoggerAdvisor()
-                        // 应用知识库问答
-//                        ,new QuestionAnswerAdvisor(loveMasterAppVectorStore)
+                )
+//                .advisors(
+//                        // 开启日志，便于观察效果
+////                        new MyLoggerAdvisor()
+//                        // 应用知识库问答
+//                        new QuestionAnswerAdvisor(loveMasterAppVectorStore)
+////                        ,new QuestionAnswerAdvisor(pgVectorVectorStore)
+//                )
+                .advisors(
+                        LoveMasterAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(
+                                loveMasterAppVectorStore,
+                                "单身"
+                        )
                 )
                 // 应用增强检索服务（云知识库服务）
-                .advisors(loveMasterAppRagCloudAdvisor)
+//                .advisors(loveMasterAppRagCloudAdvisor)
                 .call().chatResponse();
         assert chatResponse != null;
         return chatResponse.getResult().getOutput().getText();

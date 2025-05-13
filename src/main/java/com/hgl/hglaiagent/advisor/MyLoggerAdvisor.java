@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.advisor.api.*;
 import org.springframework.ai.chat.model.MessageAggregator;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -23,13 +24,17 @@ public class MyLoggerAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
 
 
     private AdvisedRequest before(AdvisedRequest request) {
-        log.info("对AI发起的 Request:{}", request.userText());
+        // 使用 PromptTemplate 对用户输入的文本和参数进行渲染，生成最终的请求内容
+        String renderRequest = new PromptTemplate(request.userText(), request.userParams()).render();
+        log.info("对AI发起的 Request:{}", renderRequest);
         return request;
     }
 
     private void observeAfter(AdvisedResponse advisedResponse) {
+        assert advisedResponse.response() != null;
         log.info("AI响应回来的 Response:{}", advisedResponse.response().getResult().getOutput().getText());
     }
+
     @NotNull
     @Override
     public AdvisedResponse aroundCall(@NotNull AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
@@ -45,7 +50,7 @@ public class MyLoggerAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
         AdvisedRequest request = before(advisedRequest);
         Flux<AdvisedResponse> advisedResponseFlux = chain.nextAroundStream(request);
         // 对流式响应进行聚合，并打印日志
-        return new MessageAggregator().aggregateAdvisedResponse(advisedResponseFlux,this::observeAfter);
+        return new MessageAggregator().aggregateAdvisedResponse(advisedResponseFlux, this::observeAfter);
     }
 
     @NotNull

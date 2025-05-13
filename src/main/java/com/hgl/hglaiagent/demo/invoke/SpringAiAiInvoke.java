@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * @Desription: 使用springAI 调用 dashscope零积 模型
  */
 // 取消注释即可在 SpringBoot 项目启动时执行
-@Component
+//@Component
 public class SpringAiAiInvoke implements CommandLineRunner {
 
     @Resource

@@ -25,11 +25,16 @@ public class LoveMasterAppRagCloudAdvisorConfig {
 
     @Bean
     public Advisor loveMasterAppRagCloudAdvisor() {
+
         DashScopeApi dashScopeApi = new DashScopeApi(dashScopeApiKey);
+
         final String KNOWLEDGE_INDEX = "恋爱大师";
+
         DashScopeDocumentRetriever dashScopeDocumentRetriever = new DashScopeDocumentRetriever(
                 dashScopeApi,
-                DashScopeDocumentRetrieverOptions.builder().withIndexName(KNOWLEDGE_INDEX).build());
+                DashScopeDocumentRetrieverOptions.builder().withIndexName(KNOWLEDGE_INDEX).build()
+        );
+
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(dashScopeDocumentRetriever)
                 .build();

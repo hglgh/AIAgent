@@ -19,6 +19,7 @@ import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -165,5 +166,24 @@ public class LoveMasterApp {
                 .call().chatResponse();
         assert chatResponse != null;
         return chatResponse.getResult().getOutput().getText();
+    }
+
+    //----------------------------------AI 调用工具------------------------------------------
+    @Resource
+    private ToolCallback[] allTools;
+
+    public String doChatWithTools(String message, String chatId){
+        ChatResponse chatResponse = chatClient.prompt()
+                .user(message)
+                .advisors(advisorSpec -> advisorSpec
+                        .param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)
+                )
+                .tools(allTools)
+                .call().chatResponse();
+        assert chatResponse != null;
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
     }
 }

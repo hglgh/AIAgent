@@ -26,6 +26,14 @@ spring:
         dimensions: 1536
         distance-type: cosine-distance
         max-document-batch-size: 10000  # 可选：每批文件的最大数量
+    mcp:
+      client:
+#        stdio:
+#          servers-configuration: classpath:mcp-servers.json
+        sse:
+          connections:
+            server1:
+              url: http://localhost:8128
   data:
     redis:
       host: localhost

@@ -1,5 +1,6 @@
 package com.hgl.hglaiagent.advisor;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.advisor.api.*;
 import org.springframework.ai.chat.model.MessageAggregator;
 import reactor.core.publisher.Flux;
@@ -37,21 +38,24 @@ public class ProhibitedWordsAdvisor implements CallAroundAdvisor, StreamAroundAd
             throw new RuntimeException("请勿使用违禁词");
         }
     }
+    @NotNull
     @Override
-    public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
+    public AdvisedResponse aroundCall(@NotNull AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
         AdvisedRequest request = before(advisedRequest);
         AdvisedResponse advisedResponse = chain.nextAroundCall(request);
         observeAfter(advisedResponse);
         return advisedResponse;
     }
 
+    @NotNull
     @Override
-    public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
+    public Flux<AdvisedResponse> aroundStream(@NotNull AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
         AdvisedRequest request = before(advisedRequest);
         Flux<AdvisedResponse> advisedResponseFlux = chain.nextAroundStream(request);
         return new MessageAggregator().aggregateAdvisedResponse(advisedResponseFlux,this::observeAfter);
     }
 
+    @NotNull
     @Override
     public String getName() {
         return this.getClass().getSimpleName();

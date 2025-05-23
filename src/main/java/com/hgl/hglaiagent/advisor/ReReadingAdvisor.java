@@ -34,13 +34,15 @@ public class ReReadingAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
                 .build();
     }
 
+    @NotNull
     @Override
-    public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
+    public AdvisedResponse aroundCall(@NotNull AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
         return chain.nextAroundCall(this.before(advisedRequest));
     }
 
+    @NotNull
     @Override
-    public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
+    public Flux<AdvisedResponse> aroundStream(@NotNull AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
         return chain.nextAroundStream(this.before(advisedRequest));
     }
 
@@ -49,6 +51,7 @@ public class ReReadingAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
         return 0;
     }
 
+    @NotNull
     @Override
     public String getName() {
         return this.getClass().getSimpleName();

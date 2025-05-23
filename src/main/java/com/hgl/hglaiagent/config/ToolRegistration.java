@@ -31,7 +31,8 @@ public class ToolRegistration {
                 new FileOperationTool(),
                 new ResourceDownloadTool(),
                 new TerminalOperationTool(),
-                new TimeUtilTool()
+                new TimeUtilTool(),
+                new TerminateTool()
         );
     }
 }

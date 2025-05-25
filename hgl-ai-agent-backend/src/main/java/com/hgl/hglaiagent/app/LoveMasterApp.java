@@ -24,6 +24,7 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -103,6 +104,22 @@ public class LoveMasterApp {
         return chatResponse.getResult().getOutput().getText();
     }
 
+    /**
+     * AI 基础对话(支持多轮对话记忆,SSE流式传输)
+     *
+     * @param message 用户输入
+     * @param chatId  会话ID
+     * @return AI输出
+     */
+    public Flux<String> doChatByStream(String message, String chatId) {
+        return chatClient.prompt()
+                .user(message)
+                .advisors(advisorSpec -> advisorSpec
+                        .param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .stream().content();
+    }
+
     // 定义LoveReport结构体
     record LoveReport(String title, List<String> suggestions) {
     }
@@ -173,7 +190,7 @@ public class LoveMasterApp {
     @Resource
     private ToolCallback[] allTools;
 
-    public String doChatWithTools(String message, String chatId){
+    public String doChatWithTools(String message, String chatId) {
         ChatResponse chatResponse = chatClient.prompt()
                 .user(message)
                 .advisors(advisorSpec -> advisorSpec
@@ -191,7 +208,8 @@ public class LoveMasterApp {
 
     @Resource
     private ToolCallbackProvider toolCallbackProvider;
-    public String doChatWithMcp(String message, String chatId){
+
+    public String doChatWithMcp(String message, String chatId) {
         ChatResponse chatResponse = chatClient.prompt()
                 .user(message)
                 .advisors(advisorSpec -> advisorSpec

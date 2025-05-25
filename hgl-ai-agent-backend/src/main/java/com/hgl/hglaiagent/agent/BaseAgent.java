@@ -7,9 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * ClassName: BaseAgent
@@ -88,6 +91,78 @@ public abstract class BaseAgent {
             // 清理资源
             this.cleanup();
         }
+    }
+
+    /**
+     * 运行代理(流式输出)
+     *
+     * @param userPrompt 用户提示词
+     * @return 执行结果
+     */
+    public SseEmitter runStream(String userPrompt) {
+        SseEmitter emitter = new SseEmitter(300000L);
+        //使用线程异步处理，避免阻塞主线程
+        CompletableFuture.runAsync(() -> {
+            try {
+                if (this.state != AgentStateEnum.IDLE) {
+                    emitter.send("错误,无法从状态运行代理：" + this.state);
+                    emitter.complete();
+                    return;
+                }
+                if (StrUtil.isBlank(userPrompt)) {
+                    emitter.send("错误,不能使用空提示词运行代理!");
+                    emitter.complete();
+                    return;
+                }
+            } catch (IOException e) {
+                emitter.completeWithError(e);
+            }
+            //更改状态
+            this.state = AgentStateEnum.RUNNING;
+            //记录消息上下文
+            this.messageList.add(new UserMessage(userPrompt));
+            try {
+                while (this.currentStep < this.maxSteps && this.state != AgentStateEnum.FINISHED) {
+                    currentStep += 1;
+                    log.info("Executing step:{}/{}", currentStep, maxSteps);
+                    String stepResult = this.step();
+                    String result = "Step " + currentStep + ": " + stepResult;
+                    emitter.send(result);
+                }
+                if (currentStep >= maxSteps) {
+                    this.state = AgentStateEnum.FINISHED;
+                    emitter.send("执行结束，达到最大步数 (" + maxSteps + ")");
+                }
+                emitter.complete();
+            } catch (Exception e) {
+                this.state = AgentStateEnum.ERROR;
+                log.error("Error executing agent", e);
+                try {
+                    emitter.send("执行出错: " + e.getMessage());
+                    emitter.complete();
+                } catch (IOException ex) {
+                    emitter.completeWithError(ex);
+                }
+            } finally {
+                // 清理资源
+                this.cleanup();
+            }
+        });
+        //设置超时回调
+        emitter.onTimeout(() -> {
+            this.state = AgentStateEnum.ERROR;
+            this.cleanup();
+            log.warn("SSE连接超时，取消执行");
+        });
+        //设置完成回调
+        emitter.onCompletion(() -> {
+            if (this.state == AgentStateEnum.RUNNING) {
+                this.state = AgentStateEnum.FINISHED;
+            }
+            this.cleanup();
+            log.info("SSE连接完成，执行完毕");
+        });
+        return emitter;
     }
 
     /**

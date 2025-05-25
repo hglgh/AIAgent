@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.hgl</groupId>
-    <artifactId>hgl-ai-agent</artifactId>
+    <artifactId>hgl-ai-agent-backend-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>hgl-ai-agent</name>
-    <description>hgl-ai-agent</description>
+    <name>hgl-ai-agent-backend-backend</name>
+    <description>hgl-ai-agent-backend</description>
     <url/>
     <licenses>
         <license/>

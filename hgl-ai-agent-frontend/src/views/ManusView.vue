@@ -1,10 +1,10 @@
 <template>
-  <div class="chat-panel">
+  <div class="chat-panel geek-card">
     <div class="chat-messages" ref="messagesContainer">
       <div v-for="(message, index) in messages" :key="index"
         :class="['message', message.type === 'user' ? 'user-message' : 'ai-message']">
         <div class="message-row">
-          <div v-if="message.type === 'ai'" class="ai-avatar geek-avatar">🤖</div>
+          <div v-if="message.type === 'ai'" class="ai-avatar geek-avatar geek-glow">🤖</div>
           <div class="message-content geek-bubble" :class="message.type">
             {{ message.content }}
           </div>
@@ -12,7 +12,8 @@
       </div>
     </div>
     <div class="input-row">
-      <input v-model="userInput" class="geek-input" :placeholder="isLoading ? 'AI思考中...' : '输入你的问题...'" @keyup.enter="sendMessage" :disabled="isLoading" />
+      <input v-model="userInput" class="geek-input" :placeholder="isLoading ? 'AI思考中...' : '输入你的问题...'
+        " @keyup.enter="sendMessage" :disabled="isLoading" />
       <button class="geek-btn" @click="sendMessage" :disabled="isLoading || !userInput.trim()">发送</button>
     </div>
   </div>
@@ -73,12 +74,12 @@ const sendMessage = async () => {
 onMounted(scrollToBottom)
 
 useHead({
-  title: 'AI超级智能体 - 极客风格AI对话',
+  title: 'AI超级智能体 - 极客白色主色调AI对话',
   meta: [
-    { name: 'description', content: '与AI超级智能体极客风格对话，获取智能解答，体验酷炫AI。' },
-    { name: 'keywords', content: 'AI, 超级智能体, 极客, 智能对话, 酷炫, HGL' },
-    { property: 'og:title', content: 'AI超级智能体 - 极客风格AI对话' },
-    { property: 'og:description', content: '极客风格，酷炫体验，AI超级智能体为你解答各种问题。' },
+    { name: 'description', content: '与AI超级智能体极客白色主色调对话，获取智能解答，体验酷炫AI。' },
+    { name: 'keywords', content: 'AI, 超级智能体, 极客, 智能对话, 白色, 酷炫, HGL' },
+    { property: 'og:title', content: 'AI超级智能体 - 极客白色主色调AI对话' },
+    { property: 'og:description', content: '极客白色主色调，酷炫体验，AI超级智能体为你解答各种问题。' },
     { property: 'og:type', content: 'website' }
   ]
 })
@@ -88,14 +89,11 @@ useHead({
 .chat-panel {
   max-width: 700px;
   margin: 2.5rem auto 0 auto;
-  background: var(--geek-panel);
-  border-radius: var(--geek-radius);
-  box-shadow: var(--geek-shadow);
-  border: 1.5px solid var(--geek-border);
-  padding: 2rem 1rem 1rem 1rem;
   min-height: 60vh;
   display: flex;
   flex-direction: column;
+  padding: 2rem 1rem 1rem 1rem;
+  box-sizing: border-box;
 }
 .chat-messages {
   flex: 1;
@@ -133,9 +131,26 @@ useHead({
   gap: 0.7rem;
   margin-top: 0.5rem;
 }
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .chat-panel {
-    padding: 1rem 0.2rem 0.7rem 0.2rem;
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem 0.7rem 0.5rem;
+  }
+}
+@media (max-width: 767px) {
+  .chat-panel {
+    max-width: 100vw;
+    margin: 0.5rem 0 0 0;
+    padding: 0.5rem 0.1rem 0.3rem 0.1rem;
+    border-radius: 8px;
+  }
+  .chat-messages {
+    margin-bottom: 0.5rem;
+    padding-right: 0.1rem;
+  }
+  .input-row {
+    gap: 0.3rem;
+    margin-top: 0.2rem;
   }
 }
 </style> 

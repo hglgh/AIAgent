@@ -13,14 +13,17 @@
 <style scoped>
 .geek-footer {
   width: 100%;
-  background: #181c24;
-  border-top: 2px solid #00ffe7;
+  background: #fff;
+  border-top: 2px solid #00eaff;
   padding: 1.2rem 0 0.7rem 0;
-  margin-top: 3rem;
+  margin-top: 1rem;
   text-align: center;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  color: #00ffe7;
-  box-shadow: 0 -2px 24px 0 #00ffe733;
+  font-family: var(--font-main);
+  color: #2563eb;
+  box-shadow: 0 -2px 24px 0 #00eaff22;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .footer-content {
   display: flex;
@@ -28,23 +31,31 @@
   justify-content: center;
   gap: 1rem;
   font-size: 1.08rem;
+  flex-wrap: wrap;
 }
 .footer-logo {
   font-size: 1.5rem;
-  filter: drop-shadow(0 0 8px #00ffe7);
+  color: #00eaff;
+  filter: drop-shadow(0 0 8px #00eaff);
 }
 .footer-text {
-  color: #00ffe7;
+  color: #2563eb;
   letter-spacing: 1px;
 }
 .geek-accent {
-  color: #00bfff;
+  color: #00eaff;
+}
+@media (max-width: 900px) {
+  .footer-content {
+    font-size: 0.98rem;
+    gap: 0.6rem;
+  }
 }
 @media (max-width: 600px) {
   .footer-content {
     flex-direction: column;
     gap: 0.3rem;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
   .footer-logo {
     font-size: 1.1rem;

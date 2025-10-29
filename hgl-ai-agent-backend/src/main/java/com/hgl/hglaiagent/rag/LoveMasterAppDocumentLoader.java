@@ -36,6 +36,14 @@ public class LoveMasterAppDocumentLoader {
         this.resourcePatternResolver = resourcePatternResolver;
     }
 
+    /**
+     * 加载Markdown文档并转换为Document对象列表
+     * <p>
+     * 该方法会读取classpath下documents目录中的所有.md文件，解析每个文件的元数据，
+     * 并使用MarkdownDocumentReader将文件内容转换为Document对象。
+     *
+     * @return 包含所有解析后文档的列表
+     */
     public List<Document> loadMarkdownDocuments() {
         List<Document> allDocuments = new ArrayList<>();
         try {
@@ -43,13 +51,20 @@ public class LoveMasterAppDocumentLoader {
             for (Resource resource : resources) {
                 String fileName = resource.getFilename();
                 assert fileName != null;
+                // 从文件名中提取状态信息（文件名倒数第4-5位字符）
                 String status = fileName.substring(fileName.length() - 6, fileName.length() - 4);
+                // 配置Markdown文档读取器，设置解析选项和元数据
                 MarkdownDocumentReaderConfig markdownDocumentReaderConfig = MarkdownDocumentReaderConfig.builder()
+                        // 设置遇到水平分割线时创建新文档
                         .withHorizontalRuleCreateDocument(true)
+                        // 不包含代码块内容
                         .withIncludeCodeBlock(false)
+                        // 不包含引用块内容
                         .withIncludeBlockquote(false)
+                        // 添加文件名作为元数据
                         .withAdditionalMetadata("fileName", fileName)
-                        .withAdditionalMetadata("status",status)
+                        // 添加状态信息作为元数据
+                        .withAdditionalMetadata("status", status)
                         .build();
                 MarkdownDocumentReader markdownDocumentReader = new MarkdownDocumentReader(resource, markdownDocumentReaderConfig);
                 allDocuments.addAll(markdownDocumentReader.get());

@@ -9,5 +9,5 @@ package com.hgl.hglaiagent.demo.invoke;
  * @Create: 2025/4/25 14:24
  */
 public interface TestApiKey {
-    public static final String API_KEY = "sk-2ade49f99d2a4486bf931eaa60bb8832";
+    String API_KEY = "sk-2ade49f99d2a4486bf931eaa60bb8832";
 }

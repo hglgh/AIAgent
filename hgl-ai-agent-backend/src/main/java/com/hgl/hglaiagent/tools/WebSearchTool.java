@@ -34,7 +34,7 @@ public class WebSearchTool {
     @Tool(description = "Search for information from Baidu Search Engine")
     public String searchWeb(@ToolParam(description = "Search query keyword") String query) {
         Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("engine", "baidu");
+        paramMap.put("engine", "bing");
         paramMap.put("q", query);
         paramMap.put("api_key", apiKey);
         try {

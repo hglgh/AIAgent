@@ -20,7 +20,7 @@ public class HuManus extends ToolCallAgent {
         super(allTools);
         super.setName("Humanus");
         String SYSTEM_PROMPT = """  
-                You are YuManus, an all-capable AI assistant, aimed at solving any task presented by the user.  
+                You are HuManus, an all-capable AI assistant, aimed at solving any task presented by the user.  
                 You have various tools at your disposal that you can call upon to efficiently complete complex requests.  
                 """;
         this.setSystemPrompt(SYSTEM_PROMPT);

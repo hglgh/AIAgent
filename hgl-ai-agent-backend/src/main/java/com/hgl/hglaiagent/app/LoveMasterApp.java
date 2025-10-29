@@ -121,7 +121,7 @@ public class LoveMasterApp {
     }
 
     // 定义LoveReport结构体
-    record LoveReport(String title, List<String> suggestions) {
+    public record LoveReport(String title, List<String> suggestions) {
     }
 
     /**

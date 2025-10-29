@@ -2,6 +2,7 @@ package com.hgl.hglaiagent.converter;
 
 import cn.hutool.json.JSONUtil;
 import com.hgl.hglaiagent.model.entity.ChatMessage;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.messages.*;
 
 import java.util.List;
@@ -28,7 +29,8 @@ public class MessageConverter {
     /**
      * 将 ChatMessage 转换为 Message
      */
-    public static Message toMessage(ChatMessage chatMessage) {
+    @NotNull
+    public static Message toMessage(@NotNull ChatMessage chatMessage) {
         MessageType messageType = chatMessage.getMessageType();
         String text = chatMessage.getContent();
         Map<String, Object> metadata = JSONUtil.toBean(chatMessage.getMetadata(), Map.class);

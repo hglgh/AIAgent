@@ -26,7 +26,7 @@ public class FileBasedChatMemory implements ChatMemory {
 
     private final String BASE_DIR;
 
-    private static final Kryo  KRYO = new Kryo();
+    private static final Kryo KRYO = new Kryo();
 
     static {
         //  设置Kryo实例为非注册模式
@@ -40,7 +40,10 @@ public class FileBasedChatMemory implements ChatMemory {
         this.BASE_DIR = dir;
         File file = new File(dir);
         if (!file.exists()) {
-            file.mkdirs();
+            boolean isCreated = file.mkdirs();
+            if (!isCreated) {
+                throw new RuntimeException("Failed to create directory: " + dir);
+            }
         }
     }
 
@@ -61,15 +64,20 @@ public class FileBasedChatMemory implements ChatMemory {
     public void clear(String conversationId) {
         File file = getConversationFile(conversationId);
         if (file.exists()) {
-            file.delete();
+            boolean isDeleted = file.delete();
+            if (!isDeleted) {
+                throw new RuntimeException("Failed to delete conversation file: " + file.getAbsolutePath());
+            }
         }
     }
 
     /**
      * 获取对话
+     *
      * @param conversationId 对话ID
-     * @return
+     * @return 对话
      */
+    @SuppressWarnings("unchecked")  //注解用于抑制编译器警告。
     private List<Message> getOrCreateConversation(String conversationId) {
         File file = getConversationFile(conversationId);
         List<Message> messages = new ArrayList<>();
@@ -77,7 +85,7 @@ public class FileBasedChatMemory implements ChatMemory {
             try (Input input = new Input(new FileInputStream(file))) {
                 messages = KRYO.readObject(input, ArrayList.class);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to read conversation from file", e);
             }
         }
         return messages;
@@ -85,21 +93,24 @@ public class FileBasedChatMemory implements ChatMemory {
 
     /**
      * 保存对话
+     *
      * @param conversationId 对话ID
-     * @param messages 对话消息
+     * @param messages       对话消息
      */
     private void saveConversation(String conversationId, List<Message> messages) {
         File file = getConversationFile(conversationId);
         try (Output output = new Output(new FileOutputStream(file))) {
             KRYO.writeObject(output, messages);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to save conversation", e);
         }
     }
+
     /**
      * 获取对话文件
+     *
      * @param conversationId 对话ID
-     * @return
+     * @return 对话文件
      */
     private File getConversationFile(String conversationId) {
         return new File(BASE_DIR, conversationId + ".kryo");

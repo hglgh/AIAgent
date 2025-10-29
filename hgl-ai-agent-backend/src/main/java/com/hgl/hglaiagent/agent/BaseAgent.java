@@ -73,7 +73,7 @@ public abstract class BaseAgent {
         try {
             while (this.currentStep < this.maxSteps && this.state != AgentStateEnum.FINISHED) {
                 currentStep += 1;
-                log.info("Executing step:{}/{}", currentStep, maxSteps);
+                logging();
                 String stepResult = this.step();
                 String result = "Step " + currentStep + ": " + stepResult;
                 resultList.add(result);
@@ -101,60 +101,99 @@ public abstract class BaseAgent {
      */
     public SseEmitter runStream(String userPrompt) {
         SseEmitter emitter = new SseEmitter(300000L);
-        //使用线程异步处理，避免阻塞主线程
-        CompletableFuture.runAsync(() -> {
-            try {
-                if (this.state != AgentStateEnum.IDLE) {
-                    emitter.send("错误,无法从状态运行代理：" + this.state);
-                    emitter.complete();
-                    return;
-                }
-                if (StrUtil.isBlank(userPrompt)) {
-                    emitter.send("错误,不能使用空提示词运行代理!");
-                    emitter.complete();
-                    return;
-                }
-            } catch (IOException e) {
-                emitter.completeWithError(e);
+
+        // 异步执行代理逻辑
+        CompletableFuture.runAsync(() -> executeAgentLogic(emitter, userPrompt));
+
+        // 设置回调处理
+        setupEmitterCallbacks(emitter);
+
+        return emitter;
+    }
+
+    private void executeAgentLogic(SseEmitter emitter, String userPrompt) {
+        try {
+            // 验证前置条件
+            if (!validatePreconditions(emitter, userPrompt)) {
+                return;
             }
-            //更改状态
-            this.state = AgentStateEnum.RUNNING;
-            //记录消息上下文
-            this.messageList.add(new UserMessage(userPrompt));
-            try {
-                while (this.currentStep < this.maxSteps && this.state != AgentStateEnum.FINISHED) {
-                    currentStep += 1;
-                    log.info("Executing step:{}/{}", currentStep, maxSteps);
-                    String stepResult = this.step();
-                    String result = "Step " + currentStep + ": " + stepResult;
-                    emitter.send(result);
-                }
-                if (currentStep >= maxSteps) {
-                    this.state = AgentStateEnum.FINISHED;
-                    emitter.send("执行结束，达到最大步数 (" + maxSteps + ")");
-                }
-                emitter.complete();
-            } catch (Exception e) {
-                this.state = AgentStateEnum.ERROR;
-                log.error("Error executing agent", e);
-                try {
-                    emitter.send("执行出错: " + e.getMessage());
-                    emitter.complete();
-                } catch (IOException ex) {
-                    emitter.completeWithError(ex);
-                }
-            } finally {
-                // 清理资源
-                this.cleanup();
-            }
-        });
-        //设置超时回调
+
+            // 初始化执行环境
+            initializeExecution(userPrompt);
+
+            // 执行主要逻辑
+            executeMainLoop(emitter);
+
+            // 处理完成状态
+            handleCompletion(emitter);
+
+        } catch (Exception e) {
+            handleError(emitter, e);
+        } finally {
+            cleanup();
+        }
+    }
+
+    private boolean validatePreconditions(SseEmitter emitter, String userPrompt) throws IOException {
+        if (this.state != AgentStateEnum.IDLE) {
+            emitter.send("错误,无法从状态运行代理：" + this.state);
+            emitter.complete();
+            return false;
+        }
+
+        if (StrUtil.isBlank(userPrompt)) {
+            emitter.send("错误,不能使用空提示词运行代理!");
+            emitter.complete();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void initializeExecution(String userPrompt) {
+        this.state = AgentStateEnum.RUNNING;
+        this.messageList.add(new UserMessage(userPrompt));
+    }
+
+    private void executeMainLoop(SseEmitter emitter) throws IOException {
+        while (this.currentStep < this.maxSteps && this.state != AgentStateEnum.FINISHED) {
+            currentStep += 1;
+            logging();
+            String stepResult = this.step();
+            String result = "Step " + currentStep + ": " + stepResult;
+            emitter.send(result);
+        }
+
+        if (currentStep >= maxSteps) {
+            this.state = AgentStateEnum.FINISHED;
+        }
+    }
+
+    private void handleCompletion(SseEmitter emitter) throws IOException {
+        if (currentStep >= maxSteps) {
+            emitter.send("执行结束，达到最大步数 (" + maxSteps + ")");
+        }
+        emitter.complete();
+    }
+
+    private void handleError(SseEmitter emitter, Exception e) {
+        this.state = AgentStateEnum.ERROR;
+        log.error("Error executing agent", e);
+        try {
+            emitter.send("执行出错: " + e.getMessage());
+            emitter.complete();
+        } catch (IOException ex) {
+            emitter.completeWithError(ex);
+        }
+    }
+
+    private void setupEmitterCallbacks(SseEmitter emitter) {
         emitter.onTimeout(() -> {
             this.state = AgentStateEnum.ERROR;
             this.cleanup();
             log.warn("SSE连接超时，取消执行");
         });
-        //设置完成回调
+
         emitter.onCompletion(() -> {
             if (this.state == AgentStateEnum.RUNNING) {
                 this.state = AgentStateEnum.FINISHED;
@@ -162,8 +201,8 @@ public abstract class BaseAgent {
             this.cleanup();
             log.info("SSE连接完成，执行完毕");
         });
-        return emitter;
     }
+
 
     /**
      * 执行单个步骤
@@ -177,5 +216,12 @@ public abstract class BaseAgent {
      */
     protected void cleanup() {
         // 子类可以重写此方法来清理资源
+    }
+
+    /**
+     * 步骤日志
+     */
+    private void logging() {
+        log.info("Executing step:{}/{}", currentStep, maxSteps);
     }
 }

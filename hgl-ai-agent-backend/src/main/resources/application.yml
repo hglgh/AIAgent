@@ -16,9 +16,9 @@ spring:
 #    username: root
 #    password: 123456
   datasource:
-    url: jdbc:postgresql://localhost:5432/hgl_ai_agent
+    url: jdbc:postgresql://10.14.215.152:5432/root_db
     username: root
-    password: 123456
+    password: root
   ai:
     vectorstore:
       pgvector:
@@ -36,7 +36,7 @@ spring:
               url: http://localhost:8128
   data:
     redis:
-      host: localhost
+      host: 10.14.215.152
       port: 6379
       database: 1
 server:

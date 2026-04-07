@@ -1,7 +1,8 @@
 package com.hgl.hglaiagent.demo.invoke;
 
 import cn.hutool.http.HttpRequest;
-   import cn.hutool.http.HttpUtil;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
    import cn.hutool.json.JSONObject;
 
    /**
@@ -29,12 +30,15 @@ import cn.hutool.http.HttpRequest;
 
            // 发送POST请求
 
-           return HttpRequest.post(API_URL)
+
+           // 发送POST请求
+           try (HttpResponse response = HttpRequest.post(API_URL)
                    .header("Authorization", "Bearer " + API_KEY)
                    .header("Content-Type", "application/json")
                    .body(requestBody.toString())
-                   .execute()
-                   .body();
+                   .execute()) {
+               return response.body();
+           }
        }
    }
    

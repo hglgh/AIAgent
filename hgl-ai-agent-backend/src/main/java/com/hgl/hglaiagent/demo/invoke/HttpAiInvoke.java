@@ -45,18 +45,18 @@ public class HttpAiInvoke {
         requestBody.set("parameters", parameters);
 
         // 发送请求
-        HttpResponse response = HttpRequest.post(url)
+        try (HttpResponse response = HttpRequest.post(url)
                 .addHeaders(headers)
                 .body(requestBody.toString())
-                .execute();
-
-        // 处理响应
-        if (response.isOk()) {
-            System.out.println("请求成功，响应内容：");
-            System.out.println(response.body());
-        } else {
-            System.out.println("请求失败，状态码：" + response.getStatus());
-            System.out.println("响应内容：" + response.body());
+                .execute()) {
+            // 处理响应
+            if (response.isOk()) {
+                System.out.println("请求成功，响应内容：");
+                System.out.println(response.body());
+            } else {
+                System.out.println("请求失败，状态码：" + response.getStatus());
+                System.out.println("响应内容：" + response.body());
+            }
         }
     }
 }
